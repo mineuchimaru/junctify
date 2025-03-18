@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 USE_S3 = os.getenv('USE_S3', 'True') == 'True'
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-default-secret-key')
-DEBUG = 'True'
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
@@ -48,12 +48,15 @@ AUTHENTICATION_BACKENDS = (
 
 SITE_ID = 1
 
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+GOOGLE_SECRET_KEY = os.getenv('GOOGLE_SECRET_KEY')
+
 # Google OAuth 2.0設定
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
-            'secret': os.getenv('GOOGLE_SECRET_KEY'),
+            'client_id': GOOGLE_CLIENT_ID,
+            'secret': GOOGLE_SECRET_KEY,
             'key': '',
         },
         'SCOPE': [
