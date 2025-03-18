@@ -1,13 +1,13 @@
-# music/admin.py
 from django.contrib import admin
-from .models import Track, Profile
+from allauth.socialaccount.models import SocialApp
 
-@admin.register(Track)
-class TrackAdmin(admin.ModelAdmin):
-    list_display = ('title', 'artist', 'audio_file', 'uploaded_at', 'play_count')  # 表示するフィールド
-    list_filter = ('artist', 'uploaded_at')  # フィルタ
-    search_fields = ('title', 'artist__username')  # 検索可能フィールド
+@admin.register(SocialApp)
+class SocialAppAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False  # 追加を禁止
 
-@admin.register(Profile)
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'icon', 'bio')
+    def has_change_permission(self, request, obj=None):
+        return False  # 変更を禁止
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # 削除を禁止

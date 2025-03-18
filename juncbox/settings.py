@@ -20,7 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'music',  # allauth より前に移動
+    'music',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -38,20 +38,16 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 ]
 
-# カスタムユーザーモデル
-#AUTH_USER_MODEL = 'music.User'
-
 AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
-SITE_ID = 1
+SITE_ID = 1  # 1回だけ定義
 
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 GOOGLE_SECRET_KEY = os.getenv('GOOGLE_SECRET_KEY')
 
-# Google OAuth 2.0設定
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
@@ -66,46 +62,46 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
             'prompt': 'select_account',
-        }
+        },
+        'SITE_ID': 1,  # 明示的に SITE_ID を指定
     }
 }
 
+# ホストベースの Site 選択を強制無効化
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_AUTO_SIGNUP = True
-# ホストベースの Site 選択を無効化
 SOCIALACCOUNT_STORE_TOKENS = True
-# デフォルトの Site を強制
-SITE_ID = 1
+# ホスト依存を無効化する追加設定
+SOCIALACCOUNT_IGNORE_HOST = True  # ホストベースの Site 選択を無効化
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-# ACCOUNT_LOGOUT_REDIRECT_URL = '/'  # コメントアウトしてカスタムビューに依存
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-#ACCOUNT_SIGNUP_FORM_CLASS = 'music.forms.CustomSignupForm'
-ACCOUNT_LOGOUT_ON_GET = True  # GETリクエストでログアウトを許可
-ACCOUNT_LOGIN_METHODS = {'email'}  # 確認用に再記載
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_LOGIN_METHODS = {'email'}
 
-# カスタムアダプター（ログイン成功メッセージ非表示用）
-ACCOUNT_ADAPTER = 'music.adapter.CustomAccountAdapter'
-SOCIALACCOUNT_ADAPTER = 'music.adapter.CustomSocialAccountAdapter'
+# カスタムアダプターを無効化
+# ACCOUNT_ADAPTER = 'music.adapter.CustomAccountAdapter'
+# SOCIALACCOUNT_ADAPTER = 'music.adapter.CustomSocialAccountAdapter'
 
 ROOT_URLCONF = 'juncbox.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # 空に戻す
-        'APP_DIRS': True,  # デフォルトに戻す
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.csrf',  # CSRFトークン用
+                'django.template.context_processors.csrf',
             ],
         },
     },
@@ -125,45 +121,32 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Tokyo'  # 日本時間
+TIME_ZONE = 'Asia/Tokyo'
 USE_I18N = True
-USE_TZ = True  # タイムゾーンサポートを有効
+USE_TZ = True
 
-# 既存の静的ファイル設定（確認用）
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
-
-# STATIC_ROOT を追加
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# S3設定
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', 'juncbox-music-files')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
-AWS_S3_FILE_OVERWRITE = False  # ファイルの上書きを防ぐ
-AWS_DEFAULT_ACL = 'public-read'  # アップロードしたファイルのアクセス許可
-AWS_QUERYSTRING_AUTH = False  # URLに認証情報を含めない
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = 'public-read'
+AWS_QUERYSTRING_AUTH = False
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 
-# メール設定（開発環境用）
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # コンソールに出力
-# 本番環境用（必要に応じてコメント解除）
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your-email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your-app-password'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# セッション設定
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # 開発中はFalse、本番ではTrue
+SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # セッションをデータベースに保存
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # ブラウザを閉じてもセッションを保持
-SESSION_COOKIE_AGE = 1209600  # セッションの有効期限（2週間）
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 1209600
