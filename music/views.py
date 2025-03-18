@@ -12,6 +12,7 @@ from allauth.account.views import LoginView, SignupView, PasswordResetView, Pass
 from .forms import UsernameChangeForm, EmailChangeForm, PasswordChangeForm, IconForm, BioForm, MusicPostForm
 from .models import Track, Profile, GoodTrack, Comment, PlayHistory
 from botocore.exceptions import NoCredentialsError, ClientError
+import os
 
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
@@ -19,26 +20,24 @@ class CustomLoginView(LoginView):
 class CustomSignupView(SignupView):
     template_name = 'registration/signup.html'
 
-# 署名付きURL生成関数
 def get_signed_url(file_name):
     if not file_name:
         return None
     try:
         s3_client = boto3.client(
             's3',
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_S3_REGION_NAME
+            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+            region_name=os.getenv('AWS_S3_REGION_NAME')
         )
         url = s3_client.generate_presigned_url(
             'get_object',
-            Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME, 'Key': file_name.replace(f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/", "")},
+            Params={'Bucket': os.getenv('AWS_STORAGE_BUCKET_NAME'), 'Key': file_name},
             ExpiresIn=3600
         )
-        print(f"Generated signed URL for {file_name}: {url}")
         return url
-    except (NoCredentialsError, ClientError) as e:
-        print(f"Error generating signed URL for {file_name}: {e}")
+    except Exception as e:
+        print(f"Error generating signed URL: {e}")
         return None
 
 @login_required
