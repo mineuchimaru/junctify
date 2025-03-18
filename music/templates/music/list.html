@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Junctify - Track List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 a {
+            color: #fff;
+            margin-bottom: 0;
+            font-size: 2.5em;
+            text-align: center;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        h1 a:hover {
+            color: #87CEEB;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #b0b0b0;
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        h2 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        .search-bar {
+            padding: 10px;
+            background-color: #444;
+            color: #e0e0e0;
+            border: 1px solid #666;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        .nav-links {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .nav-links a, .nav-links button.edit-button {
+            margin: 5px 10px;
+            color: #87CEEB;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            font-size: 1.2em;
+        }
+        .nav-links a:hover, .nav-links button.edit-button:hover {
+            color: #ADD8E6;
+            text-decoration: underline;
+        }
+        .nav-links a:visited, .nav-links a:active {
+            color: #87CEEB;
+        }
+        .nav-links button.edit-button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 1.2em;
+        }
+        .nav-links button.edit-button:hover {
+            background-color: #777;
+        }
+        .track-list {
+            width: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        .track-item {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .track-icon {
+            margin-right: 15px;
+        }
+        .track-icon img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+        .track-info {
+            flex-grow: 1;
+            margin-bottom: 5px;
+        }
+        .track-info a {
+            color: #87CEEB;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            font-size: 1.2em;
+        }
+        .track-info a:hover {
+            color: #ADD8E6;
+            text-decoration: underline;
+        }
+        .track-info a:visited, .track-info a:active {
+            color: #87CEEB;
+        }
+        .track-meta {
+            font-size: 1em;
+            color: #b0b0b0;
+            margin-top: 5px;
+        }
+        .track-description {
+            font-size: 0.9em;
+            color: #b0b0b0;
+            margin-top: 5px;
+            padding: 5px;
+            background-color: #444;
+            border-radius: 3px;
+            word-wrap: break-word;
+        }
+        audio {
+            display: none; /* デフォルトのオーディオプレイヤーを非表示 */
+        }
+        .custom-player {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 100%; /* はみ出さないように最大幅を制限 */
+            box-sizing: border-box; /* パディングを含めた幅 */
+        }
+        .custom-player button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            padding: 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 1.1em;
+            margin-right: 10px;
+            min-width: 40px; /* ボタン幅を固定 */
+        }
+        .custom-player button:hover {
+            background-color: #777;
+        }
+        .custom-player .seek-bar {
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+        .custom-player input[type="range"] {
+            width: 100%;
+            background: #666;
+            -webkit-appearance: none;
+            -moz-appearance: none; /* Firefox用のプレフィックス */
+            appearance: none; /* 標準プロパティを追加 */
+            height: 5px;
+            border-radius: 3px;
+            outline: none;
+        }
+        .custom-player input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #87CEEB;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .custom-player input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #87CEEB;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        .custom-player .time-display {
+            font-size: 0.9em;
+            color: #b0b0b0;
+            margin-right: 10px;
+            min-width: 80px; /* 時間表示の最小幅を確保 */
+            text-align: right;
+        }
+        .custom-player .volume-control {
+            display: flex;
+            align-items: center;
+        }
+        .custom-player .volume-control input[type="range"] {
+            width: 60px;
+            margin-left: 5px;
+        }
+        .track-actions {
+            margin-top: 10px;
+        }
+        .good-button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 5px;
+            font-size: 1.1em;
+        }
+        .good-button:hover {
+            background-color: #777;
+        }
+        .comment-form {
+            display: inline;
+            margin-left: 5px;
+        }
+        input[type="text"] {
+            background-color: #444;
+            color: #e0e0e0;
+            border: 1px solid #666;
+            padding: 8px;
+            border-radius: 3px;
+            font-size: 1.1em;
+            width: auto;
+        }
+        button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 1.1em;
+        }
+        button:hover {
+            background-color: #777;
+        }
+        .toggle-comments {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 1.1em;
+        }
+        .toggle-comments:hover {
+            background-color: #777;
+        }
+        .comments {
+            margin-top: 10px;
+            color: #b0b0b0;
+            font-size: 1em;
+            display: none;
+        }
+        .comments.visible {
+            display: block;
+        }
+        .owner-comment {
+            color: #90ee90;
+        }
+        .delete-comment-button {
+            background-color: #ff4444;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-left: 5px;
+        }
+        .delete-comment-button:hover {
+            background-color: #ff6666;
+        }
+        .play-count {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 1em;
+            color: #b0b0b0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .modal-content img {
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 8px;
+        }
+        .close {
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #87CEEB;
+        }
+
+        /* スマホ向けの調整 */
+        @media (max-width: 768px) {
+            h1 a {
+                font-size: 2em;
+            }
+            .subtitle {
+                font-size: 1em;
+            }
+            .search-bar {
+                font-size: 1em;
+            }
+            .nav-links a, .nav-links button.edit-button {
+                font-size: 1em;
+                margin: 5px;
+            }
+            .track-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .track-icon {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            .track-icon img {
+                width: 40px;
+                height: 40px;
+            }
+            .track-info a {
+                font-size: 1em;
+            }
+            .track-meta, .track-description, .comments {
+                font-size: 0.9em;
+            }
+            .good-button, button, .toggle-comments, .delete-comment-button {
+                font-size: 0.9em;
+                padding: 6px 10px;
+            }
+            input[type="text"] {
+                font-size: 0.9em;
+                width: 100%;
+            }
+            .custom-player {
+                flex-wrap: wrap;
+            }
+            .custom-player .seek-bar {
+                margin: 10px 0;
+                width: 100%;
+            }
+            .custom-player .time-display {
+                margin: 0 10px 10px 0;
+            }
+            .custom-player .volume-control {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .custom-player .volume-control input[type="range"] {
+                width: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1><a href="{% url 'music_list' %}">Junctify</a></h1>
+    <p class="subtitle">Your own sound in Junctify</p>
+    <input type="text" class="search-bar" id="search-bar" placeholder="Search tracks...">
+    <div class="nav-links">
+        {% if user.is_authenticated %}
+            <a href="{% url 'profile' %}">Profile</a> | 
+            <a href="{% url 'upload_music' %}">Upload</a> | 
+            <a href="{% url 'logout' %}">Logout</a> | 
+            <button class="edit-button" data-url="{% url 'edit_profile' %}" onclick="navigateToEditProfile(this)">Edit Account Information</button>
+        {% else %}
+            <a href="{% url 'account_login' %}">Login</a> | 
+            <a href="{% url 'account_signup' %}">Register</a>
+        {% endif %}
+    </div>
+    <div class="track-list">
+        <h2>Track List</h2>
+        {% if tracks %}
+            {% for track in tracks %}
+                <div class="track-item" id="track-{{ track.id }}">
+                    <div class="track-icon">
+                        {% if track.icon_url %}
+                            <img src="{{ track.icon_url }}" alt="{{ track.artist.username }}'s Icon" onclick="navigateToProfile('{{ track.artist.username }}')">
+                        {% else %}
+                            <span>No Icon</span>
+                        {% endif %}
+                    </div>
+                    <div class="track-info">
+                        {{ track.title }} by <a href="#" onclick="navigateToProfile('{{ track.artist.username }}'); return false;">{{ track.artist.username }}</a>
+                        <span class="play-count">Plays: {{ track.play_count }}</span>
+                        <div class="track-meta">Uploaded: {{ track.local_uploaded_at_str }}</div>
+                        {% if track.description %}
+                            <div class="track-description">{{ track.description }}</div>
+                        {% endif %}
+                        <!-- 隠しオーディオ要素 -->
+                        <audio id="audio-{{ track.id }}" preload="metadata">
+                            <source src="{{ track.audio_url|default:track.audio_file }}" type="audio/mpeg">
+                        </audio>
+                        <!-- カスタムプレイヤー -->
+                        <div class="custom-player" id="player-{{ track.id }}">
+                            <button onclick="togglePlay('{{ track.id }}')" class="play-pause-btn" data-playing="false">▶</button>
+                            <div class="seek-bar">
+                                <input type="range" min="0" max="100" value="0" id="seek-bar-{{ track.id }}" oninput="seekTrack('{{ track.id }}', this.value)">
+                            </div>
+                            <div class="time-display" id="time-display-{{ track.id }}">00:00 / 00:00</div>
+                            <div class="volume-control">
+                                <span>🔊</span>
+                                <input type="range" min="0" max="1" step="0.01" value="1" id="volume-{{ track.id }}" oninput="setVolume('{{ track.id }}', this.value)">
+                            </div>
+                        </div>
+                        <div class="track-actions">
+                            <button onclick="goodTrack('{{ track.id }}')" class="good-button">Good (<span id="good-count-{{ track.id }}">{{ track.goodtrack_set.count }}</span>)</button>
+                            <form class="comment-form" data-track-id="{{ track.id }}">
+                                {% csrf_token %}
+                                <input type="text" name="text" placeholder="Comment" id="comment-input-{{ track.id }}">
+                                <button type="submit">Add</button>
+                            </form>
+                            <button class="toggle-comments" onclick="toggleComments('comments-{{ track.id }}')">Show Comments (<span id="comment-count-{{ track.id }}">{{ track.comment_set.count }}</span>)</button>
+                            <div id="comments-{{ track.id }}" class="comments">
+                                {% for comment in track.comment_set.all %}
+                                    <p class="{% if comment.user == track.artist %}owner-comment{% endif %}">
+                                        {{ comment.user.username }}: {{ comment.text }} ({{ comment.created_at|date:"Y-m-d H:i" }})
+                                        {% if user == comment.user %}
+                                            <button class="delete-comment-button" onclick="deleteComment('{{ comment.id }}')">Delete</button>
+                                        {% endif %}
+                                    </p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No tracks available.</p>
+        {% endif %}
+    </div>
+    <div id="iconModal" class="modal">
+        <span class="close" onclick="closeModal()">×</span>
+        <div class="modal-content">
+            <img id="modalImage" src="" alt="User Icon">
+        </div>
+    </div>
+    {{ user.is_authenticated|json_script:"is-authenticated-data" }}
+    <script>
+    const isAuthenticatedData = JSON.parse(document.getElementById('is-authenticated-data').textContent);
+    const isAuthenticated = isAuthenticatedData;
+
+    function getCsrfToken() {
+        const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (input) {
+            return input.value;
+        }
+        console.warn('CSRF token not found, proceeding without it for unauthenticated user');
+        return null;
+    }
+
+    console.log('CSRF Token:', getCsrfToken());
+    console.log('isAuthenticated (raw):', isAuthenticatedData);
+    console.log('isAuthenticated (evaluated):', isAuthenticated);
+
+    function navigateToEditProfile(button) {
+        const url = button.getAttribute('data-url');
+        window.location.href = url;
+    }
+
+    function navigateToProfile(username) {
+        const currentUser = '{{ user.username|escapejs }}';
+        const profileUrl = '{% url "profile" %}';
+        const userProfileUrl = '{% url "user_profile" username="temp" %}'.replace('temp', username);
+        const url = (username === currentUser) ? profileUrl : userProfileUrl;
+        console.log(`Navigating to: ${url} for username: ${username}, currentUser: ${currentUser}`);
+        window.location.href = url;
+    }
+
+    function goodTrack(trackId) {
+        console.log('Good button clicked for track:', trackId);
+        const token = getCsrfToken();
+        console.log('Checking authentication for goodTrack:', isAuthenticated);
+        if (!isAuthenticated) {
+            console.log('User is not authenticated, redirecting to login');
+            window.location.href = '/accounts/login/';
+            return;
+        }
+        if (!token) {
+            console.warn('CSRF token missing, redirecting to login');
+            window.location.href = '/accounts/login/';
+            return;
+        }
+        fetch(`/good/${trackId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => {
+            console.log('Fetch response status:', response.status);
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error('Network response was not ok ' + response.status + ': ' + (err.message || '')) });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Fetch response data:', data);
+            const goodCountElement = document.getElementById(`good-count-${trackId}`);
+            if (goodCountElement && data.good_count !== undefined) {
+                goodCountElement.textContent = data.good_count;
+            } else {
+                console.error('Good count update failed:', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error in goodTrack:', error);
+            alert('Error occurred while updating good count: ' + error.message);
+        });
+    }
+
+    // カスタムプレイヤーの制御
+    function togglePlay(trackId) {
+        const audio = document.getElementById(`audio-${trackId}`);
+        const button = document.querySelector(`#player-${trackId} .play-pause-btn`);
+        const isPlaying = button.getAttribute('data-playing') === 'true';
+
+        if (isPlaying) {
+            audio.pause();
+            button.textContent = '▶';
+            button.setAttribute('data-playing', 'false');
+        } else {
+            audio.play();
+            button.textContent = '⏸';
+            button.setAttribute('data-playing', 'true');
+            // 再生カウントを更新
+            playTrack(trackId);
+        }
+    }
+
+    function playTrack(trackId) {
+        console.log('Attempting to play track:', trackId);
+        const audio = document.getElementById(`audio-${trackId}`);
+        console.log('Audio element:', audio);
+        console.log('Audio source URL:', audio.src);
+
+        const token = getCsrfToken();
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (token) {
+            headers['X-CSRFToken'] = token;
+        }
+        fetch(`/play/${trackId}/`, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({})
+        })
+        .then(response => {
+            console.log('Play fetch response status:', response.status);
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error('Network response was not ok ' + response.status + ': ' + (err.message || '')) });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Play fetch response data:', data);
+            const playCountElement = document.getElementById(`play-count-${trackId}`);
+            if (playCountElement) {
+                playCountElement.textContent = `Plays: ${data.play_count}`;
+            }
+        })
+        .catch(error => {
+            console.error('Error in playTrack:', error);
+        });
+    }
+
+    function seekTrack(trackId, value) {
+        const audio = document.getElementById(`audio-${trackId}`);
+        const duration = audio.duration;
+        const newTime = (value / 100) * duration;
+        audio.currentTime = newTime;
+    }
+
+    function setVolume(trackId, value) {
+        const audio = document.getElementById(`audio-${trackId}`);
+        audio.volume = value;
+    }
+
+    // 再生時間とシークバーの更新
+    document.querySelectorAll('audio').forEach(audio => {
+        const trackId = audio.id.replace('audio-', '');
+        const seekBar = document.getElementById(`seek-bar-${trackId}`);
+        const timeDisplay = document.getElementById(`time-display-${trackId}`);
+
+        audio.addEventListener('timeupdate', () => {
+            const currentTime = audio.currentTime;
+            const duration = audio.duration || 0;
+            const progressPercent = (currentTime / duration) * 100;
+            seekBar.value = progressPercent;
+
+            const currentMinutes = Math.floor(currentTime / 60);
+            const currentSeconds = Math.floor(currentTime % 60);
+            const durationMinutes = Math.floor(duration / 60);
+            const durationSeconds = Math.floor(duration % 60);
+
+            timeDisplay.textContent = `${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds} / ${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+        });
+
+        audio.addEventListener('ended', () => {
+            const button = document.querySelector(`#player-${trackId} .play-pause-btn`);
+            button.textContent = '▶';
+            button.setAttribute('data-playing', 'false');
+            seekBar.value = 0;
+            timeDisplay.textContent = '00:00 / ' + timeDisplay.textContent.split(' / ')[1];
+        });
+
+        audio.addEventListener('loadedmetadata', () => {
+            const duration = audio.duration;
+            const durationMinutes = Math.floor(duration / 60);
+            const durationSeconds = Math.floor(duration % 60);
+            timeDisplay.textContent = `00:00 / ${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+        });
+    });
+
+    function toggleComments(commentId) {
+        var comments = document.getElementById(commentId);
+        if (comments.classList.contains('visible')) {
+            comments.classList.remove('visible');
+        } else {
+            comments.classList.add('visible');
+        }
+    }
+
+    function deleteComment(commentId) {
+        if (confirm('Are you sure you want to delete this comment?')) {
+            const token = getCsrfToken();
+            console.log('Checking authentication for deleteComment:', isAuthenticated);
+            if (!isAuthenticated) {
+                console.log('User is not authenticated, redirecting to login');
+                window.location.href = '/accounts/login/';
+                return;
+            }
+            if (!token) {
+                console.warn('CSRF token missing, redirecting to login');
+                window.location.href = '/accounts/login/';
+                return;
+            }
+            fetch(`/delete-comment/${commentId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': token,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'deleted') {
+                    console.log(`Comment ${commentId} deleted`);
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+
+    document.querySelectorAll('.comment-form').forEach(form => {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log('Comment form submitted');
+            const trackId = this.getAttribute('data-track-id');
+            const textInput = document.getElementById(`comment-input-${trackId}`);
+            const text = textInput.value;
+
+            if (text.trim() === '') return;
+
+            const token = getCsrfToken();
+            console.log('Checking authentication for comment submission:', isAuthenticated);
+            if (!isAuthenticated) {
+                console.log('User is not authenticated, redirecting to login');
+                window.location.href = '/accounts/login/';
+                return;
+            }
+            if (!token) {
+                console.warn('CSRF token missing, redirecting to login');
+                window.location.href = '/accounts/login/';
+                return;
+            }
+
+            fetch(`/comment/${trackId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': token,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'text': text
+                })
+            })
+            .then(response => {
+                console.log('Comment fetch response status:', response.status);
+                if (!response.ok) throw new Error('Network response was not ok ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Comment fetch response data:', data);
+                if (data.status === 'success') {
+                    location.reload();
+                    textInput.value = '';
+                    const commentCountElement = document.getElementById(`comment-count-${trackId}`);
+                    if (commentCountElement) {
+                        commentCountElement.textContent = parseInt(commentCountElement.textContent) + 1;
+                    }
+                } else {
+                    console.error('Comment submission failed:', data);
+                }
+            })
+            .catch(error => console.error('Error in comment submission:', error));
+        });
+    });
+
+    function deleteTrack(trackId) {
+        if (confirm('Are you sure you want to delete this track?')) {
+            const token = getCsrfToken();
+            console.log('Checking authentication for deleteTrack:', isAuthenticated);
+            if (!isAuthenticated) {
+                console.log('User is not authenticated, redirecting to login');
+                window.location.href = '/accounts/login/';
+                return;
+            }
+            if (!token) {
+                console.warn('CSRF token missing, redirecting to login');
+                window.location.href = '/accounts/login/';
+                return;
+            }
+            fetch(`/delete/${trackId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': token,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'deleted') {
+                    console.log(`Track ${trackId} deleted`);
+                    location.reload();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+
+    document.getElementById('search-bar').addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        const tracks = document.querySelectorAll('.track-item');
+        tracks.forEach(track => {
+            const title = track.querySelector('.track-info').textContent.toLowerCase();
+            if (title.includes(query)) {
+                track.style.display = 'block';
+            } else {
+                track.style.display = 'none';
+            }
+        });
+    });
+
+    document.querySelectorAll('audio').forEach(audio => {
+        audio.addEventListener('error', (e) => {
+            console.error(`Error loading audio-${audio.id}:`, e);
+            alert('Failed to load the audio file. Check the console for details.');
+        });
+    });
+
+    function openModal(imageSrc) {
+        const modal = document.getElementById('iconModal');
+        const modalImage = document.getElementById('modalImage');
+        modalImage.src = imageSrc;
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('iconModal');
+        modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('iconModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Music - Junctify</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+        a {
+            color: #87CEEB;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        a:hover {
+            color: #ADD8E6;
+            text-decoration: underline;
+        }
+        a:visited {
+            color: #87CEEB;
+        }
+        a:active {
+            color: #87CEEB;
+        }
+        form {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        input[type="text"],
+        input[type="file"],
+        textarea {
+            background-color: #444;
+            color: #e0e0e0;
+            border: 1px solid #666;
+            padding: 5px;
+            border-radius: 3px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        textarea {
+            min-height: 100px;
+        }
+        button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #777;
+        }
+        .nav-links {
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload Music</h1>
+    <div class="nav-links">
+        <a href="{% url 'music_list' %}">Back to Tracks</a> | 
+        {% if user.is_authenticated %}
+            <a href="{% url 'profile' %}">Profile</a> | 
+            <a href="{% url 'upload_music' %}">Upload</a> |  <!-- Uploadリンクを復活 -->
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'account_login' %}">Login</a> | 
+            <a href="{% url 'account_signup' %}">Register</a>
+        {% endif %}
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Upload</button>
+    </form>
+</body>
+</html>

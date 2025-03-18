@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Profile - Junctify</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1, h2 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+        a {
+            color: #87CEEB;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        a:hover {
+            color: #ADD8E6;
+            text-decoration: underline;
+        }
+        a:visited {
+            color: #87CEEB;
+        }
+        a:active {
+            color: #87CEEB;
+        }
+        .nav-links {
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            margin: 0 10px;
+        }
+        .edit-form {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .edit-form input[type="text"],
+        .edit-form input[type="email"],
+        .edit-form input[type="password"] {
+            background-color: #444;
+            color: #e0e0e0;
+            border: 1px solid #666;
+            padding: 10px;
+            border-radius: 3px;
+            margin: 10px 0;
+            width: 80%;
+            box-sizing: border-box;
+        }
+        .edit-form button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .edit-form button:hover {
+            background-color: #777;
+        }
+        .delete-account-button {
+            background-color: #ff4444;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .delete-account-button:hover {
+            background-color: #ff6666;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-links">
+        <a href="{% url 'music_list' %}">Back to Tracks</a> | 
+        <a href="{% url 'profile' %}">Back to Profile</a>
+    </div>
+    <h1>Edit Profile</h1>
+    <div class="edit-form">
+        <h2>Change Username</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ username_form.as_p }}
+            {% if username_form.errors %}
+                <p style="color: #ff4444;">{{ username_form.non_field_errors }}</p>
+            {% endif %}
+            <input type="hidden" name="username_update">
+            <button type="submit">Update Username</button>
+        </form>
+        <h2>Change Email</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ email_form.as_p }}
+            {% if email_form.errors %}
+                <p style="color: #ff4444;">{{ email_form.non_field_errors }}</p>
+            {% endif %}
+            <input type="hidden" name="email_update">
+            <button type="submit">Update Email</button>
+        </form>
+        <h2>Change Password</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ password_form.as_p }}
+            {% if password_form.errors %}
+                <p style="color: #ff4444;">{{ password_form.non_field_errors }}</p>
+            {% endif %}
+            <input type="hidden" name="password_update">
+            <button type="submit">Update Password</button>
+        </form>
+        <!-- 退会フォーム -->
+        <h2>Delete Account</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ password_form.as_p }}
+            {% if password_form.errors %}
+                <p style="color: #ff4444;">{{ password_form.non_field_errors }}</p>
+            {% endif %}
+            <input type="hidden" name="delete_account">
+            <button type="submit" class="delete-account-button" onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">Delete Account</button>
+        </form>
+    </div>
+</body>
+</html>

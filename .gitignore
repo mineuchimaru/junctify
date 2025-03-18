@@ -1,0 +1,6 @@
+db.sqlite3
+__pycache__/
+memo.txt
+secrets.txt
+*.pyc
+.env
