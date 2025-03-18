@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 USE_S3 = os.getenv('USE_S3', 'True') == 'True'
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-default-secret-key')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = 'True'
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*.onrender.com']
 
 INSTALLED_APPS = [
