@@ -116,8 +116,12 @@ TIME_ZONE = 'Asia/Tokyo'  # 日本時間
 USE_I18N = True
 USE_TZ = True  # タイムゾーンサポートを有効
 
+# 既存の静的ファイル設定（確認用）
 STATIC_URL = '/static/'
-STATICFILES_DIRS = []
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# STATIC_ROOT を追加
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
