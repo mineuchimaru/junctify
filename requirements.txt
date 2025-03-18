@@ -117,6 +117,7 @@ Pygments==2.15.1
 PyJWT==2.10.1
 Pympler==1.0.1
 pyparsing==3.1.1
+pypiwin32==223
 pypng==0.20220715.0
 pyrsistent==0.19.3
 PySimpleGUI==5.0.8.2
