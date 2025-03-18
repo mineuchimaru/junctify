@@ -51,6 +51,11 @@ SITE_ID = 1
 # Google OAuth 2.0設定
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_SECRET_KEY'),
+            'key': '',
+        },
         'SCOPE': [
             'profile',
             'email',
@@ -61,9 +66,6 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
-
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '49368231867-bsb3brvfkh613hp2iecg2aehclp0u7ua.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
