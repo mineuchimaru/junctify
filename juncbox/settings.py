@@ -70,6 +70,13 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+# ホストベースの Site 選択を無効化
+SOCIALACCOUNT_STORE_TOKENS = True
+# デフォルトの Site を強制
+SITE_ID = 1
+
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
