@@ -13,10 +13,10 @@ class Command(BaseCommand):
         # SITE_ID = 1 以外の Site を削除
         Site.objects.exclude(id=settings.SITE_ID).delete()
 
-        # SITE_ID = 1 の Site を更新
+        # SITE_ID = 1 の Site をデフォルト（example.com）に設定
         site, created = Site.objects.get_or_create(id=settings.SITE_ID)
-        site.domain = 'junctify.onrender.com'
-        site.name = 'junctify.onrender.com'
+        site.domain = 'example.com'
+        site.name = 'example.com'
         site.save()
 
         # 新しい SocialApp を作成
