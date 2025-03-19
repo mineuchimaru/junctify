@@ -214,19 +214,25 @@
         }
         .track-actions {
             margin-top: 10px;
+            display: flex;
+            gap: 5px;
+            align-items: center;
         }
-        .good-button {
+        .good-button, .junction-button {
             background-color: #555;
             color: #fff;
             border: none;
             padding: 8px 12px;
             border-radius: 3px;
             cursor: pointer;
-            margin-right: 5px;
+            transition: background-color 0.2s ease;
             font-size: 1.1em;
         }
-        .good-button:hover {
+        .good-button:hover, .junction-button:hover {
             background-color: #777;
+        }
+        .junction-button {
+            text-decoration: none;
         }
         .comment-form {
             display: inline;
@@ -367,7 +373,7 @@
             .track-meta, .track-description, .comments {
                 font-size: 0.9em;
             }
-            .good-button, button, .toggle-comments, .delete-comment-button {
+            .good-button, .junction-button, button, .toggle-comments, .delete-comment-button {
                 font-size: 0.9em;
                 padding: 6px 10px;
             }
@@ -447,6 +453,7 @@
                         </div>
                         <div class="track-actions">
                             <button onclick="goodTrack('{{ track.id }}')" class="good-button">Good (<span id="good-count-{{ track.id }}">{{ track.goodtrack_set.count }}</span>)</button>
+                            <a href="{% url 'junction_list' track.id %}" class="junction-button">Junction</a>
                             <form class="comment-form" data-track-id="{{ track.id }}">
                                 {% csrf_token %}
                                 <input type="text" name="text" placeholder="Comment" id="comment-input-{{ track.id }}">

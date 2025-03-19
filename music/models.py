@@ -17,6 +17,18 @@ class Track(models.Model):
     def __str__(self):
         return self.title
 
+class Junction(models.Model):
+    track = models.ForeignKey(Track, on_delete=models.CASCADE, related_name='junctions')
+    collaborator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='junctions')
+    created_at = models.DateTimeField(auto_now_add=True)
+    illustration = models.ImageField(upload_to='junctions/illustrations/', blank=True, null=True)
+    story = models.TextField(blank=True, null=True)  # 小説やテキスト
+    image = models.ImageField(upload_to='junctions/images/', blank=True, null=True)  # イメージ画像
+    description = models.TextField(blank=True, null=True)  # コラボ作品の説明
+
+    def __str__(self):
+        return f"Junction for {self.track.title} by {self.collaborator.username}"
+
 class GoodTrack(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     track = models.ForeignKey(Track, on_delete=models.CASCADE)

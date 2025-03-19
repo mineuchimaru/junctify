@@ -9,8 +9,8 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
 from allauth.account.views import LoginView, SignupView, PasswordResetView, PasswordResetDoneView
-from .forms import UsernameChangeForm, EmailChangeForm, PasswordChangeForm, IconForm, BioForm, MusicPostForm
-from .models import Track, Profile, GoodTrack, Comment, PlayHistory
+from .forms import UsernameChangeForm, EmailChangeForm, PasswordChangeForm, IconForm, BioForm, MusicPostForm,JunctionForm
+from .models import Track, Profile, GoodTrack, Comment, PlayHistory,Junction
 from botocore.exceptions import NoCredentialsError, ClientError
 import os
 
@@ -373,3 +373,24 @@ class CustomPasswordResetView(PasswordResetView):
 
 class CustomPasswordResetDoneView(PasswordResetDoneView):
     template_name = 'registration/password_reset_done.html'
+
+@login_required
+def junction_list(request, track_id):
+    track = get_object_or_404(Track, id=track_id)
+    junctions = track.junctions.all()
+    return render(request, 'music/junction_list.html', {'track': track, 'junctions': junctions})
+
+@login_required
+def junction_create(request, track_id):
+    track = get_object_or_404(Track, id=track_id)
+    if request.method == 'POST':
+        form = JunctionForm(request.POST, request.FILES)
+        if form.is_valid():
+            junction = form.save(commit=False)
+            junction.track = track
+            junction.collaborator = request.user
+            junction.save()
+            return redirect('junction_list', track_id=track.id)
+    else:
+        form = JunctionForm()
+    return render(request, 'music/junction_form.html', {'form': form, 'track': track})

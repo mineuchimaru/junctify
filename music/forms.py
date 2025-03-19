@@ -1,7 +1,7 @@
 # music/forms.py
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Profile,Track
+from .models import Profile,Track,Junction
 
 User = get_user_model()
 
@@ -57,4 +57,13 @@ class MusicPostForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
             'audio_file': forms.ClearableFileInput(),
+        }
+
+class JunctionForm(forms.ModelForm):
+    class Meta:
+        model = Junction
+        fields = ['illustration', 'story', 'image', 'description']
+        widgets = {
+            'story': forms.Textarea(attrs={'rows': 5}),
+            'description': forms.Textarea(attrs={'rows': 3}),
         }
