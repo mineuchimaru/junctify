@@ -109,9 +109,16 @@ def profile(request):
         for track in all_tracks:
             print(f"Track: {track.id}, Title: {track.title}, Artist: {track.artist.username if track.artist else 'None'}")
 
-    # アイコンURLを生成
-    icon_url = get_signed_url(profile.icon) if profile.icon else None
-    print(f"Generated Icon URL for user {user.username}: {icon_url}")
+    # アイコンURLを生成（修正）
+    icon_url = None
+    if profile.icon:
+        # S3 URLからキーを抽出
+        icon_key = profile.icon.replace(f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/", "")
+        print(f"Profile icon path: {profile.icon}, Extracted key: {icon_key}")
+        icon_url = get_signed_url(icon_key)
+        print(f"Generated Icon URL for user {user.username}: {icon_url}")
+    else:
+        print(f"No icon set for user {user.username}")
 
     # 各トラックの署名付きURLを生成
     for track in tracks:

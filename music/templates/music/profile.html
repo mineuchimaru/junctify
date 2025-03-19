@@ -261,8 +261,9 @@
         <div class="profile-icon">
             {% if icon_url %}
                 <img src="{{ icon_url }}" alt="User Icon" onclick="openModal('{{ icon_url }}')">
+                <!-- Debug: Icon URL is {{ icon_url }} -->
             {% else %}
-                <p>No icon set</p>
+                <p>No icon set. Debug: icon_url is None or empty</p>
             {% endif %}
         </div>
         <form method="post" enctype="multipart/form-data">
