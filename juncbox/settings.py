@@ -68,7 +68,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_LOGIN_METHODS = {'email'}
 
-ACCOUNT_EMAIL_TEMPLATE_DIR = 'registration/email'
+ACCOUNT_EMAIL_TEMPLATE_DIR = 'account/email'
 
 ACCOUNT_ADAPTER = 'music.adapter.CustomAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'music.adapter.CustomSocialAccountAdapter'
@@ -109,6 +109,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
