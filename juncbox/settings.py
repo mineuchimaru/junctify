@@ -68,6 +68,8 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_LOGIN_METHODS = {'email'}
 
+ACCOUNT_EMAIL_TEMPLATE_DIR = 'registration'
+
 ACCOUNT_ADAPTER = 'music.adapter.CustomAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'music.adapter.CustomSocialAccountAdapter'
 
