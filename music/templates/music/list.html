@@ -1,7 +1,9 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Junctify - Track List</title>
+    <title>Junctions - Music List</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -31,31 +33,26 @@
             margin-top: 5px;
             margin-bottom: 15px;
         }
-        h2 {
-            color: #fff;
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
         .search-bar {
-            padding: 10px;
+            padding: 8px;
             background-color: #444;
             color: #e0e0e0;
             border: 1px solid #666;
             border-radius: 5px;
             width: 100%;
-            box-sizing: border-box;
-            font-size: 1.2em;
+            max-width: 400px;
             margin-bottom: 15px;
+            font-size: 1em;
         }
         .nav-links {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
             width: 100%;
         }
-        .nav-links a, .nav-links button.edit-button {
+        .nav-links a {
             margin: 5px 10px;
             color: #87CEEB;
             text-decoration: none;
@@ -63,25 +60,33 @@
             transition: color 0.2s ease;
             font-size: 1.2em;
         }
-        .nav-links a:hover, .nav-links button.edit-button:hover {
+        .nav-links a:hover {
             color: #ADD8E6;
             text-decoration: underline;
         }
         .nav-links a:visited, .nav-links a:active {
             color: #87CEEB;
         }
-        .nav-links button.edit-button {
-            background-color: #555;
-            color: #fff;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-            font-size: 1.2em;
+        .filter-links {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
         }
-        .nav-links button.edit-button:hover {
-            background-color: #777;
+        .filter-links a {
+            color: #87CEEB;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.2em;
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: background-color 0.2s ease;
+        }
+        .filter-links a:hover {
+            background-color: #333;
+        }
+        .filter-links a.active {
+            background-color: #555;
         }
         .track-list {
             width: 100%;
@@ -233,6 +238,9 @@
         }
         .junction-button {
             text-decoration: none;
+            margin-left: 10px;
+            padding: 5px 10px;
+            font-size: 1em;
         }
         .comment-form {
             display: inline;
@@ -298,7 +306,7 @@
         .delete-comment-button:hover {
             background-color: #ff6666;
         }
-        .play-count {
+        .play-count, .impression-count {
             display: inline-block;
             margin-left: 10px;
             font-size: 1em;
@@ -339,6 +347,12 @@
         .close:hover {
             color: #87CEEB;
         }
+        .content-image {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
 
         /* スマホ向けの調整 */
         @media (max-width: 768px) {
@@ -349,11 +363,16 @@
                 font-size: 1em;
             }
             .search-bar {
-                font-size: 1em;
+                max-width: 300px;
+                font-size: 0.9em;
             }
-            .nav-links a, .nav-links button.edit-button {
+            .nav-links a {
                 font-size: 1em;
                 margin: 5px;
+            }
+            .filter-links a {
+                font-size: 1em;
+                padding: 4px 8px;
             }
             .track-item {
                 flex-direction: column;
@@ -402,80 +421,159 @@
     </style>
 </head>
 <body>
-    <h1><a href="{% url 'music_list' %}">Junctify</a></h1>
-    <p class="subtitle">Your own sound in Junctify</p>
+    <h1><a href="{% url 'music_list' %}">Junctions</a></h1>
+    <p class="subtitle">Your own sound in Junctions</p>
     <input type="text" class="search-bar" id="search-bar" placeholder="Search tracks...">
     <div class="nav-links">
         {% if user.is_authenticated %}
             <a href="{% url 'profile' %}">Profile</a> | 
             <a href="{% url 'upload_music' %}">Upload</a> | 
-            <a href="{% url 'logout' %}">Logout</a> | 
-            <button class="edit-button" data-url="{% url 'edit_profile' %}" onclick="navigateToEditProfile(this)">Edit Account Information</button>
+            <a href="{% url 'account_logout' %}">Logout</a>
         {% else %}
             <a href="{% url 'account_login' %}">Login</a> | 
             <a href="{% url 'account_signup' %}">Register</a>
         {% endif %}
     </div>
+    <div class="filter-links">
+        <a href="{% url 'music_list' %}" class="{% if not type_filter %}active{% endif %}">All</a>
+        <a href="?type=audio" class="{% if type_filter == 'audio' %}active{% endif %}">Audio</a>
+        <a href="?type=image" class="{% if type_filter == 'image' %}active{% endif %}">Image</a>
+    </div>
     <div class="track-list">
-        <h2>Track List</h2>
-        {% if tracks %}
-            {% for track in tracks %}
-                <div class="track-item" id="track-{{ track.id }}">
-                    <div class="track-icon">
-                        {% if track.icon_url %}
-                            <img src="{{ track.icon_url }}" alt="{{ track.artist.username }}'s Icon" onclick="navigateToProfile('{{ track.artist.username }}')">
-                        {% else %}
-                            <span>No Icon</span>
-                        {% endif %}
-                    </div>
-                    <div class="track-info">
-                        {{ track.title }} by <a href="#" onclick="navigateToProfile('{{ track.artist.username }}'); return false;">{{ track.artist.username }}</a>
-                        <span class="play-count">Plays: {{ track.play_count }}</span>
-                        <div class="track-meta">Uploaded: {{ track.local_uploaded_at_str }}</div>
-                        {% if track.description %}
-                            <div class="track-description">{{ track.description }}</div>
-                        {% endif %}
-                        <!-- 隠しオーディオ要素 -->
-                        <audio id="audio-{{ track.id }}" preload="metadata">
-                            <source src="{{ track.audio_url|default:track.audio_file }}" type="audio/mpeg">
-                        </audio>
-                        <!-- カスタムプレイヤー -->
-                        <div class="custom-player" id="player-{{ track.id }}">
-                            <button onclick="togglePlay('{{ track.id }}')" class="play-pause-btn" data-playing="false">▶</button>
-                            <div class="seek-bar">
-                                <input type="range" min="0" max="100" value="0" id="seek-bar-{{ track.id }}" oninput="seekTrack('{{ track.id }}', this.value)">
+        {% if items %}
+            {% for item in items %}
+                {% if item.type == 'track' %}
+                    {% with track=item.obj %}
+                        <div class="track-item" id="track-{{ track.id }}">
+                            <div class="track-icon">
+                                {% if item.icon_url %}
+                                    <img src="{{ item.icon_url }}" alt="{{ track.artist.username }}'s Icon" onclick="navigateToProfile('{{ track.artist.username|escapejs }}')">
+                                {% else %}
+                                    <span>No Icon</span>
+                                {% endif %}
                             </div>
-                            <div class="time-display" id="time-display-{{ track.id }}">00:00 / 00:00</div>
-                            <div class="volume-control">
-                                <span>🔊</span>
-                                <input type="range" min="0" max="1" step="0.01" value="1" id="volume-{{ track.id }}" oninput="setVolume('{{ track.id }}', this.value)">
+                            <div class="track-info">
+                                {{ track.title|default:"Untitled" }} by <a href="#" onclick="navigateToProfile('{{ track.artist.username|escapejs }}'); return false;">{{ track.artist.username }}</a>
+                                {% if track.type == 'audio' %}
+                                    <span class="play-count" data-content-type="track" data-content-id="{{ track.id }}">Plays: {{ track.play_count|default:0 }}</span>
+                                {% else %}
+                                    <span class="impression-count" data-content-type="track" data-content-id="{{ track.id }}">ClickView: {{ track.impression_count|default:0 }}</span>
+                                {% endif %}
+                                <a href="{% url 'junctify_list' content_type='track' content_id=track.id %}" class="junction-button">Junctify</a>
+                                <div class="track-meta">Uploaded: {{ track.uploaded_at|date:"Y-m-d H:i" }}</div>
+                                {% if track.description %}
+                                    <div class="track-description">{{ track.description }}</div>
+                                {% endif %}
+                                {% if track.type == 'audio' and item.audio_url %}
+                                    <!-- 隠しオーディオ要素 -->
+                                    <audio id="audio-track-{{ track.id }}" preload="metadata">
+                                        <source src="{{ item.audio_url }}" type="audio/mpeg">
+                                    </audio>
+                                    <!-- カスタムプレイヤー -->
+                                    <div class="custom-player" id="player-track-{{ track.id }}" data-content-id="track-{{ track.id }}">
+                                        <button class="play-pause-btn" data-playing="false">▶</button>
+                                        <div class="seek-bar">
+                                            <input type="range" min="0" max="100" value="0" id="seek-bar-track-{{ track.id }}" class="seek-bar-input">
+                                        </div>
+                                        <div class="time-display" id="time-display-track-{{ track.id }}">00:00 / 00:00</div>
+                                        <div class="volume-control">
+                                            <span>🔊</span>
+                                            <input type="range" min="0" max="1" step="0.01" value="1" id="volume-track-{{ track.id }}" class="volume-input">
+                                        </div>
+                                    </div>
+                                {% elif track.type == 'image' and item.image_url %}
+                                    <img src="{{ item.image_url }}" alt="{% if track.title %}{{ track.title }}{% else %}Untitled{% endif %}" class="content-image" onclick="openModalWithImpression('{{ item.image_url }}', 'track', '{{ track.id }}')">
+                                {% endif %}
+                                <div class="track-actions">
+                                    <button onclick="goodTrack('track', '{{ track.id }}')" class="good-button">Good (<span id="good-count-track-{{ track.id }}">{{ track.goodtrack_set.count|default:0 }}</span>)</button>
+                                    <form class="comment-form" data-content-type="track" data-content-id="{{ track.id }}">
+                                        {% csrf_token %}
+                                        <input type="text" name="text" placeholder="Comment" id="comment-input-track-{{ track.id }}">
+                                        <button type="submit">Add</button>
+                                    </form>
+                                    <button class="toggle-comments" onclick="toggleComments('comments-track-{{ track.id }}')">Show Comments (<span id="comment-count-track-{{ track.id }}">{{ track.comments.count|default:0 }}</span>)</button>
+                                    <div id="comments-track-{{ track.id }}" class="comments">
+                                        {% for comment in track.comments.all %}
+                                            <p class="{% if comment.user == track.artist %}owner-comment{% endif %}">
+                                                {{ comment.user.username }}: {{ comment.text }} ({{ comment.created_at|date:"Y-m-d H:i" }})
+                                                {% if user == comment.user %}
+                                                    <button class="delete-comment-button" onclick="deleteComment('{{ comment.id }}')">Delete</button>
+                                                {% endif %}
+                                            </p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="track-actions">
-                            <button onclick="goodTrack('{{ track.id }}')" class="good-button">Good (<span id="good-count-{{ track.id }}">{{ track.goodtrack_set.count }}</span>)</button>
-                            <a href="{% url 'junction_list' track.id %}" class="junction-button">Junction</a>
-                            <form class="comment-form" data-track-id="{{ track.id }}">
-                                {% csrf_token %}
-                                <input type="text" name="text" placeholder="Comment" id="comment-input-{{ track.id }}">
-                                <button type="submit">Add</button>
-                            </form>
-                            <button class="toggle-comments" onclick="toggleComments('comments-{{ track.id }}')">Show Comments (<span id="comment-count-{{ track.id }}">{{ track.comment_set.count }}</span>)</button>
-                            <div id="comments-{{ track.id }}" class="comments">
-                                {% for comment in track.comment_set.all %}
-                                    <p class="{% if comment.user == track.artist %}owner-comment{% endif %}">
-                                        {{ comment.user.username }}: {{ comment.text }} ({{ comment.created_at|date:"Y-m-d H:i" }})
-                                        {% if user == comment.user %}
-                                            <button class="delete-comment-button" onclick="deleteComment('{{ comment.id }}')">Delete</button>
-                                        {% endif %}
-                                    </p>
-                                {% endfor %}
+                    {% endwith %}
+                {% else %}
+                    {% with junction=item.obj %}
+                        <div class="track-item" id="junction-{{ junction.id }}">
+                            <div class="track-icon">
+                                {% if item.icon_url %}
+                                    <img src="{{ item.icon_url }}" alt="{{ junction.collaborator.username }}'s Icon" onclick="navigateToProfile('{{ junction.collaborator.username|escapejs }}')">
+                                {% else %}
+                                    <span>No Icon</span>
+                                {% endif %}
+                            </div>
+                            <div class="track-info">
+                                {{ junction.title|default:"Untitled" }} by <a href="#" onclick="navigateToProfile('{{ junction.collaborator.username|escapejs }}'); return false;">{{ junction.collaborator.username }}</a> Junctified with {{ junction.track.title|default:"Untitled" }} by <a href="#" onclick="navigateToProfile('{{ junction.track.artist.username|escapejs }}'); return false;">{{ junction.track.artist.username }}</a>
+                                {% if junction.type == 'audio' %}
+                                    <span class="play-count" data-content-type="junction" data-content-id="{{ junction.id }}">Plays: {{ junction.play_count|default:0 }}</span>
+                                {% else %}
+                                    <span class="impression-count" data-content-type="junction" data-content-id="{{ junction.id }}">ClickView: {{ junction.impression_count|default:0 }}</span>
+                                {% endif %}
+                                <a href="{% url 'junctify_list' content_type='junction' content_id=junction.id %}" class="junction-button">Junctify</a>
+                                <div class="track-meta">Created: {{ junction.created_at|date:"Y-m-d H:i" }}</div>
+                                {% if junction.description %}
+                                    <div class="track-description">{{ junction.description }}</div>
+                                {% endif %}
+                                {% if junction.type == 'audio' and item.audio_url %}
+                                    <!-- 隠しオーディオ要素 -->
+                                    <audio id="audio-junction-{{ junction.id }}" preload="metadata">
+                                        <source src="{{ item.audio_url }}" type="audio/mpeg">
+                                    </audio>
+                                    <!-- カスタムプレイヤー -->
+                                    <div class="custom-player" id="player-junction-{{ junction.id }}" data-content-id="junction-{{ junction.id }}">
+                                        <button class="play-pause-btn" data-playing="false">▶</button>
+                                        <div class="seek-bar">
+                                            <input type="range" min="0" max="100" value="0" id="seek-bar-junction-{{ junction.id }}" class="seek-bar-input">
+                                        </div>
+                                        <div class="time-display" id="time-display-junction-{{ junction.id }}">00:00 / 00:00</div>
+                                        <div class="volume-control">
+                                            <span>🔊</span>
+                                            <input type="range" min="0" max="1" step="0.01" value="1" id="volume-junction-{{ junction.id }}" class="volume-input">
+                                        </div>
+                                    </div>
+                                {% elif junction.type == 'image' and item.image_url %}
+                                    <img src="{{ item.image_url }}" alt="{% if junction.title %}{{ junction.title }}{% else %}Untitled{% endif %}" class="content-image" onclick="openModalWithImpression('{{ item.image_url }}', 'junction', '{{ junction.id }}')">
+                                {% endif %}
+                                <div class="track-actions">
+                                    <button onclick="goodTrack('junction', '{{ junction.id }}')" class="good-button">Good (<span id="good-count-junction-{{ junction.id }}">{{ junction.goodtrack_set.count|default:0 }}</span>)</button>
+                                    <form class="comment-form" data-content-type="junction" data-content-id="{{ junction.id }}">
+                                        {% csrf_token %}
+                                        <input type="text" name="text" placeholder="Comment" id="comment-input-junction-{{ junction.id }}">
+                                        <button type="submit">Add</button>
+                                    </form>
+                                    <button class="toggle-comments" onclick="toggleComments('comments-junction-{{ junction.id }}')">Show Comments (<span id="comment-count-junction-{{ junction.id }}">{{ junction.comments.count|default:0 }}</span>)</button>
+                                    <div id="comments-junction-{{ junction.id }}" class="comments">
+                                        {% for comment in junction.comments.all %}
+                                            <p class="{% if comment.user == junction.collaborator %}owner-comment{% endif %}">
+                                                {{ comment.user.username }}: {{ comment.text }} ({{ comment.created_at|date:"Y-m-d H:i" }})
+                                                {% if user == comment.user %}
+                                                    <button class="delete-comment-button" onclick="deleteComment('{{ comment.id }}')">Delete</button>
+                                                {% endif %}
+                                            </p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    {% endwith %}
+                {% endif %}
             {% endfor %}
         {% else %}
-            <p>No tracks available.</p>
+            <p>No items available.</p>
         {% endif %}
     </div>
     <div id="iconModal" class="modal">
@@ -502,11 +600,6 @@
     console.log('isAuthenticated (raw):', isAuthenticatedData);
     console.log('isAuthenticated (evaluated):', isAuthenticated);
 
-    function navigateToEditProfile(button) {
-        const url = button.getAttribute('data-url');
-        window.location.href = url;
-    }
-
     function navigateToProfile(username) {
         const currentUser = '{{ user.username|escapejs }}';
         const profileUrl = '{% url "profile" %}';
@@ -516,8 +609,8 @@
         window.location.href = url;
     }
 
-    function goodTrack(trackId) {
-        console.log('Good button clicked for track:', trackId);
+    function goodTrack(contentType, contentId) {
+        console.log('Good button clicked for:', contentType, contentId);
         const token = getCsrfToken();
         console.log('Checking authentication for goodTrack:', isAuthenticated);
         if (!isAuthenticated) {
@@ -530,7 +623,45 @@
             window.location.href = '/accounts/login/';
             return;
         }
-        fetch(`/good/${trackId}/`, {
+        fetch('/good/' + contentType + '/' + contentId + '/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => {
+            console.log('Fetch response status:', response.status);
+            if (response.status === 403 || response.status === 401) {
+                console.log('Unauthorized or Forbidden, redirecting to login');
+                window.location.href = '/accounts/login/';
+                return;
+            }
+            if (!response.ok) {
+                return response.text().then(text => { throw new Error('Network response was not ok ' + response.status + ': ' + text) });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Fetch response data:', data);
+            const goodCountElement = document.getElementById('good-count-' + contentType + '-' + contentId);
+            if (goodCountElement && data.good_count !== undefined) {
+                goodCountElement.textContent = data.good_count;
+            } else {
+                console.error('Good count update failed:', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error in goodTrack:', error);
+            alert('Error occurred while updating good count: ' + error.message);
+        });
+    }
+
+    function recordImpression(contentType, contentId) {
+        console.log(`Recording impression for ${contentType} ${contentId}`);
+        const token = getCsrfToken();
+        fetch('/impression/' + contentType + '/' + contentId + '/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': token,
@@ -546,42 +677,87 @@
             return response.json();
         })
         .then(data => {
-            console.log('Fetch response data:', data);
-            const goodCountElement = document.getElementById(`good-count-${trackId}`);
-            if (goodCountElement && data.good_count !== undefined) {
-                goodCountElement.textContent = data.good_count;
+            console.log('Impression recorded:', data);
+            const impressionCountElement = document.querySelector(`span.impression-count[data-content-type="${contentType}"][data-content-id="${contentId}"]`);
+            if (impressionCountElement) {
+                if (data.impression_count !== undefined) {
+                    impressionCountElement.textContent = 'ClickView: ' + data.impression_count;
+                    console.log(`Updated impression count for ${contentType} ${contentId} to ${data.impression_count}`);
+                } else {
+                    console.error('data.impression_count is undefined:', data);
+                }
             } else {
-                console.error('Good count update failed:', data);
+                console.error(`Impression count element not found for ${contentType} ${contentId}`);
             }
         })
         .catch(error => {
-            console.error('Error in goodTrack:', error);
-            alert('Error occurred while updating good count: ' + error.message);
+            console.error('Error in recordImpression:', error);
         });
     }
 
+    function openModalWithImpression(imageSrc, contentType, contentId) {
+        recordImpression(contentType, contentId);
+        openModal(imageSrc);
+    }
+
     // カスタムプレイヤーの制御
-    function togglePlay(trackId) {
-        const audio = document.getElementById(`audio-${trackId}`);
-        const button = document.querySelector(`#player-${trackId} .play-pause-btn`);
+    document.querySelectorAll('.play-pause-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const contentId = this.parentElement.getAttribute('data-content-id');
+            togglePlay(contentId);
+        });
+    });
+
+    document.querySelectorAll('.seek-bar-input').forEach(input => {
+        input.addEventListener('input', function() {
+            const contentId = this.parentElement.parentElement.getAttribute('data-content-id');
+            seekTrack(contentId, this.value);
+        });
+    });
+
+    document.querySelectorAll('.volume-input').forEach(input => {
+        input.addEventListener('input', function() {
+            const contentId = this.parentElement.parentElement.getAttribute('data-content-id');
+            setVolume(contentId, this.value);
+        });
+    });
+
+    function togglePlay(contentId) {
+        const audio = document.getElementById('audio-' + contentId);
+        const button = document.querySelector('#player-' + contentId + ' .play-pause-btn');
         const isPlaying = button.getAttribute('data-playing') === 'true';
 
+        console.log('togglePlay called for contentId:', contentId);
+        console.log('Audio element:', audio);
+        console.log('Audio source URL:', audio ? audio.src : 'Not found');
+
         if (isPlaying) {
+            console.log('Pausing audio');
             audio.pause();
             button.textContent = '▶';
             button.setAttribute('data-playing', 'false');
         } else {
-            audio.play();
-            button.textContent = '⏸';
-            button.setAttribute('data-playing', 'true');
-            // 再生カウントを更新
-            playTrack(trackId);
+            console.log('Playing audio');
+            if (audio.currentTime === 0) {
+                if (contentId.startsWith('track-')) {
+                    playTrack(contentId.split('-')[1]);
+                } else if (contentId.startsWith('junction-')) {
+                    playJunction(contentId.split('-')[1]);
+                }
+            }
+            audio.play().then(() => {
+                console.log('Audio playback started');
+                button.textContent = '⏸';
+                button.setAttribute('data-playing', 'true');
+            }).catch(error => {
+                console.error('Error playing audio:', error);
+            });
         }
     }
 
     function playTrack(trackId) {
         console.log('Attempting to play track:', trackId);
-        const audio = document.getElementById(`audio-${trackId}`);
+        const audio = document.getElementById('audio-track-' + trackId);
         console.log('Audio element:', audio);
         console.log('Audio source URL:', audio.src);
 
@@ -592,7 +768,7 @@
         if (token) {
             headers['X-CSRFToken'] = token;
         }
-        fetch(`/play/${trackId}/`, {
+        fetch('/play/' + trackId + '/', {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({})
@@ -606,9 +782,12 @@
         })
         .then(data => {
             console.log('Play fetch response data:', data);
-            const playCountElement = document.getElementById(`play-count-${trackId}`);
+            const playCountElement = document.querySelector(`span.play-count[data-content-type="track"][data-content-id="${trackId}"]`);
             if (playCountElement) {
-                playCountElement.textContent = `Plays: ${data.play_count}`;
+                playCountElement.textContent = 'Plays: ' + data.play_count;
+                console.log(`Updated play count for track ${trackId} to ${data.play_count}`);
+            } else {
+                console.error(`Play count element not found for track ${trackId}`);
             }
         })
         .catch(error => {
@@ -616,23 +795,63 @@
         });
     }
 
-    function seekTrack(trackId, value) {
-        const audio = document.getElementById(`audio-${trackId}`);
+    function playJunction(junctionId) {
+        console.log('Attempting to play junction:', junctionId);
+        const audio = document.getElementById('audio-junction-' + junctionId);
+        console.log('Audio element:', audio);
+        console.log('Audio source URL:', audio.src);
+
+        const token = getCsrfToken();
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (token) {
+            headers['X-CSRFToken'] = token;
+        }
+        fetch('/play-junction/' + junctionId + '/', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({})
+        })
+        .then(response => {
+            console.log('Play fetch response status:', response.status);
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error('Network response was not ok ' + response.status + ': ' + (err.message || '')) });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Play fetch response data:', data);
+            const playCountElement = document.querySelector(`span.play-count[data-content-type="junction"][data-content-id="${junctionId}"]`);
+            if (playCountElement) {
+                playCountElement.textContent = 'Plays: ' + data.play_count;
+                console.log(`Updated play count for junction ${junctionId} to ${data.play_count}`);
+            } else {
+                console.error(`Play count element not found for junction ${junctionId}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error in playJunction:', error);
+        });
+    }
+
+    function seekTrack(contentId, value) {
+        const audio = document.getElementById('audio-' + contentId);
         const duration = audio.duration;
         const newTime = (value / 100) * duration;
         audio.currentTime = newTime;
     }
 
-    function setVolume(trackId, value) {
-        const audio = document.getElementById(`audio-${trackId}`);
+    function setVolume(contentId, value) {
+        const audio = document.getElementById('audio-' + contentId);
         audio.volume = value;
     }
 
     // 再生時間とシークバーの更新
     document.querySelectorAll('audio').forEach(audio => {
-        const trackId = audio.id.replace('audio-', '');
-        const seekBar = document.getElementById(`seek-bar-${trackId}`);
-        const timeDisplay = document.getElementById(`time-display-${trackId}`);
+        const contentId = audio.id.replace('audio-', '');
+        const seekBar = document.getElementById('seek-bar-' + contentId);
+        const timeDisplay = document.getElementById('time-display-' + contentId);
 
         audio.addEventListener('timeupdate', () => {
             const currentTime = audio.currentTime;
@@ -645,11 +864,11 @@
             const durationMinutes = Math.floor(duration / 60);
             const durationSeconds = Math.floor(duration % 60);
 
-            timeDisplay.textContent = `${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds} / ${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+            timeDisplay.textContent = currentMinutes + ':' + (currentSeconds < 10 ? '0' : '') + currentSeconds + ' / ' + durationMinutes + ':' + (durationSeconds < 10 ? '0' : '') + durationSeconds;
         });
 
         audio.addEventListener('ended', () => {
-            const button = document.querySelector(`#player-${trackId} .play-pause-btn`);
+            const button = document.querySelector('#player-' + contentId + ' .play-pause-btn');
             button.textContent = '▶';
             button.setAttribute('data-playing', 'false');
             seekBar.value = 0;
@@ -660,7 +879,7 @@
             const duration = audio.duration;
             const durationMinutes = Math.floor(duration / 60);
             const durationSeconds = Math.floor(duration % 60);
-            timeDisplay.textContent = `00:00 / ${durationMinutes}:${durationSeconds < 10 ? '0' : ''}${durationSeconds}`;
+            timeDisplay.textContent = '00:00 / ' + durationMinutes + ':' + (durationSeconds < 10 ? '0' : '') + durationSeconds;
         });
     });
 
@@ -687,7 +906,7 @@
                 window.location.href = '/accounts/login/';
                 return;
             }
-            fetch(`/delete-comment/${commentId}/`, {
+            fetch('/delete-comment/' + commentId + '/', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': token,
@@ -700,7 +919,7 @@
             })
             .then(data => {
                 if (data.status === 'deleted') {
-                    console.log(`Comment ${commentId} deleted`);
+                    console.log('Comment ' + commentId + ' deleted');
                     location.reload();
                 }
             })
@@ -712,8 +931,9 @@
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             console.log('Comment form submitted');
-            const trackId = this.getAttribute('data-track-id');
-            const textInput = document.getElementById(`comment-input-${trackId}`);
+            const contentType = this.getAttribute('data-content-type');
+            const contentId = this.getAttribute('data-content-id');
+            const textInput = document.getElementById('comment-input-' + contentType + '-' + contentId);
             const text = textInput.value;
 
             if (text.trim() === '') return;
@@ -731,7 +951,7 @@
                 return;
             }
 
-            fetch(`/comment/${trackId}/`, {
+            fetch('/comment/' + contentType + '/' + contentId + '/', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': token,
@@ -751,7 +971,7 @@
                 if (data.status === 'success') {
                     location.reload();
                     textInput.value = '';
-                    const commentCountElement = document.getElementById(`comment-count-${trackId}`);
+                    const commentCountElement = document.getElementById('comment-count-' + contentType + '-' + contentId);
                     if (commentCountElement) {
                         commentCountElement.textContent = parseInt(commentCountElement.textContent) + 1;
                     }
@@ -763,57 +983,9 @@
         });
     });
 
-    function deleteTrack(trackId) {
-        if (confirm('Are you sure you want to delete this track?')) {
-            const token = getCsrfToken();
-            console.log('Checking authentication for deleteTrack:', isAuthenticated);
-            if (!isAuthenticated) {
-                console.log('User is not authenticated, redirecting to login');
-                window.location.href = '/accounts/login/';
-                return;
-            }
-            if (!token) {
-                console.warn('CSRF token missing, redirecting to login');
-                window.location.href = '/accounts/login/';
-                return;
-            }
-            fetch(`/delete/${trackId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': token,
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'deleted') {
-                    console.log(`Track ${trackId} deleted`);
-                    location.reload();
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        }
-    }
-
-    document.getElementById('search-bar').addEventListener('input', function(e) {
-        const query = e.target.value.toLowerCase();
-        const tracks = document.querySelectorAll('.track-item');
-        tracks.forEach(track => {
-            const title = track.querySelector('.track-info').textContent.toLowerCase();
-            if (title.includes(query)) {
-                track.style.display = 'block';
-            } else {
-                track.style.display = 'none';
-            }
-        });
-    });
-
     document.querySelectorAll('audio').forEach(audio => {
         audio.addEventListener('error', (e) => {
-            console.error(`Error loading audio-${audio.id}:`, e);
+            console.error('Error loading audio-' + audio.id + ':', e);
             alert('Failed to load the audio file. Check the console for details.');
         });
     });
@@ -836,6 +1008,19 @@
             modal.style.display = 'none';
         }
     }
+
+    document.getElementById('search-bar').addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        const tracks = document.querySelectorAll('.track-list .track-item');
+        tracks.forEach(track => {
+            const title = track.querySelector('.track-info').textContent.toLowerCase();
+            if (title.includes(query)) {
+                track.style.display = 'flex';
+            } else {
+                track.style.display = 'none';
+            }
+        });
+    });
     </script>
 </body>
 </html>

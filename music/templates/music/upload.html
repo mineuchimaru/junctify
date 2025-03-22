@@ -1,98 +1,197 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload Music - Junctify</title>
+    <title>Junctions - Upload Content</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 10px;
             background-color: #1a1a1a;
             color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        h1 {
+        h1 a {
             color: #fff;
-            margin-bottom: 20px;
+            margin-bottom: 0;
+            font-size: 2.5em;
+            text-align: center;
+            text-decoration: none;
+            transition: color 0.2s ease;
         }
-        a {
+        h1 a:hover {
+            color: #87CEEB;
+        }
+        .subtitle {
+            font-size: 1.2em;
+            color: #b0b0b0;
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        h2 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        .nav-links {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .nav-links a {
+            margin: 5px 10px;
             color: #87CEEB;
             text-decoration: none;
             font-weight: 500;
             transition: color 0.2s ease;
+            font-size: 1.2em;
         }
-        a:hover {
+        .nav-links a:hover {
             color: #ADD8E6;
             text-decoration: underline;
         }
-        a:visited {
-            color: #87CEEB;
-        }
-        a:active {
+        .nav-links a:visited, .nav-links a:active {
             color: #87CEEB;
         }
         form {
-            background-color: #333;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 600px;
-            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            box-sizing: border-box;
         }
-        input[type="text"],
-        input[type="file"],
-        textarea {
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
             background-color: #444;
             color: #e0e0e0;
             border: 1px solid #666;
-            padding: 5px;
             border-radius: 3px;
-            margin: 10px 0;
-            width: 100%;
+            font-size: 1.1em;
             box-sizing: border-box;
-            resize: vertical;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+            color: #e0e0e0;
         }
         textarea {
-            min-height: 100px;
+            height: 100px;
+            resize: vertical;
         }
         button {
             background-color: #555;
             color: #fff;
             border: none;
-            padding: 5px 10px;
+            padding: 10px 20px;
             border-radius: 3px;
             cursor: pointer;
+            transition: background-color 0.2s ease;
+            font-size: 1.1em;
         }
         button:hover {
             background-color: #777;
         }
-        .nav-links {
-            margin-bottom: 20px;
+        .error {
+            color: #ff4444;
+            font-size: 0.9em;
+            margin-bottom: 10px;
         }
-        .nav-links a {
-            margin: 0 10px;
+        .field-container {
+            margin-bottom: 10px;
+        }
+
+        /* スマホ向けの調整 */
+        @media (max-width: 768px) {
+            h1 a {
+                font-size: 2em;
+            }
+            .subtitle {
+                font-size: 1em;
+            }
+            .nav-links a {
+                font-size: 1em;
+                margin: 5px;
+            }
+            form {
+                padding: 15px;
+            }
+            label, input[type="text"], textarea, select, button {
+                font-size: 1em;
+            }
+            button {
+                padding: 8px 16px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Upload Music</h1>
+    <h1><a href="{% url 'music_list' %}">Junctions</a></h1>
+    <p class="subtitle">Your own sound in Junctions</p>
     <div class="nav-links">
-        <a href="{% url 'music_list' %}">Back to Tracks</a> | 
         {% if user.is_authenticated %}
             <a href="{% url 'profile' %}">Profile</a> | 
-            <a href="{% url 'upload_music' %}">Upload</a> |  <!-- Uploadリンクを復活 -->
-            <a href="{% url 'logout' %}">Logout</a>
+            <a href="{% url 'upload_music' %}">Upload</a> | 
+            <a href="{% url 'edit_profile' %}">Edit Profile</a> | 
+            <a href="{% url 'account_logout' %}">Logout</a>
         {% else %}
             <a href="{% url 'account_login' %}">Login</a> | 
             <a href="{% url 'account_signup' %}">Register</a>
         {% endif %}
     </div>
+    <h2>Upload Content</h2>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Upload</button>
+        <div class="field-container">
+            <label for="id_title">Title:</label>
+            {{ form.title }}
+        </div>
+        <div class="field-container">
+            <label for="id_type">Type:</label>
+            {{ form.type }}
+        </div>
+        <div class="field-container" id="audio-file-field">
+            <label for="id_audio_file">Audio File:</label>
+            {{ form.audio_file }}
+        </div>
+        <div class="field-container" id="image-file-field" style="display: none;">
+            <label for="id_image_file">Image File:</label>
+            {{ form.image_file }}
+        </div>
+        <div class="field-container">
+            <label for="id_description">Description:</label>
+            {{ form.description }}
+        </div>
+        <button type="submit">Submit</button>
     </form>
+    <script>
+    document.getElementById('id_type').addEventListener('change', function() {
+        const type = this.value;
+        const audioField = document.getElementById('audio-file-field');
+        const imageField = document.getElementById('image-file-field');
+
+        if (type === 'audio') {
+            audioField.style.display = 'block';
+            imageField.style.display = 'none';
+        } else if (type === 'image') {
+            audioField.style.display = 'none';
+            imageField.style.display = 'block';
+        }
+    });
+    </script>
 </body>
 </html>
