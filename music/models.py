@@ -3,14 +3,29 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    icon = models.CharField(max_length=255, blank=True)  # FileField から CharField に戻す
-    bio = models.TextField(blank=True, null=True)
+    icon = models.ImageField(upload_to='icons/', blank=True, null=True)
+    bio = models.TextField(blank=True)
 
     def __str__(self):
-        return f"Profile of {self.user.username}"
+        return f"{self.user.username}'s Profile"
+
+# シグナルを使って User 作成時に Profile を自動作成
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    try:
+        instance.profile.save()
+    except Profile.DoesNotExist:
+        Profile.objects.create(user=instance)
 
 class Track(models.Model):
     artist = models.ForeignKey(User, on_delete=models.CASCADE)
