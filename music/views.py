@@ -59,142 +59,86 @@ def get_signed_url(file_path):
 
 @login_required
 def profile(request):
-    user = request.user
-    # Profile が存在しない場合は作成
-    profile, created = Profile.objects.get_or_create(user=user)
-    
-    tracks = Track.objects.filter(artist=user).order_by('-uploaded_at')
-    junctions = Junction.objects.filter(collaborator=user).order_by('-created_at')
+    tracks = Track.objects.filter(artist=request.user).order_by('-uploaded_at')
+    junctions = Junction.objects.filter(collaborator=request.user).order_by('-created_at')
+
+    # 安全に profile にアクセス
+    try:
+        if request.user.profile and request.user.profile.icon:
+            icon_path = request.user.profile.icon.name.strip('/')  # .name を追加
+            print(f"User {request.user.id} - Icon path: {icon_path}")
+            icon_url = get_signed_url(icon_path)
+            print(f"User {request.user.id} - Icon URL: {icon_url}")
+        else:
+            icon_url = None
+            print(f"User {request.user.id} - No icon URL")
+    except request.user.profile.RelatedObjectDoesNotExist:
+        icon_url = None
+        print(f"User {request.user.id} - No profile")
 
     for track in tracks:
+        try:
+            if track.artist.profile and track.artist.profile.icon:
+                track_icon_path = track.artist.profile.icon.name.strip('/')  # .name を追加
+                print(f"Track {track.id} - Icon path: {track_icon_path}")
+                track.icon_url = get_signed_url(track_icon_path)
+                print(f"Track {track.id} - Icon URL: {track.icon_url}")
+            else:
+                track.icon_url = None
+                print(f"Track {track.id} - No icon URL (artist or profile missing)")
+        except track.artist.profile.RelatedObjectDoesNotExist:
+            track.icon_url = None
+            print(f"Track {track.id} - No profile for artist")
+
         if track.type == 'audio' and track.audio_file:
-            track_audio_path = track.audio_file.strip('/')
+            track_audio_path = track.audio_file.name.strip('/')  # .name を追加
             print(f"Track {track.id} - Audio path: {track_audio_path}")
             track.audio_url = get_signed_url(track_audio_path)
             print(f"Track {track.id} - Audio URL: {track.audio_url}")
         elif track.type == 'image' and track.image_file:
-            track_image_path = track.image_file.strip('/')
+            track_image_path = track.image_file.name.strip('/')  # .name を追加
             print(f"Track {track.id} - Image path: {track_image_path}")
             track.image_url = get_signed_url(track_image_path)
             print(f"Track {track.id} - Image URL: {track.image_url}")
-        if track.artist and hasattr(track.artist, 'profile') and track.artist.profile.icon:
-            track_icon_path = track.artist.profile.icon.strip('/')
-            print(f"Track {track.id} - Icon path: {track_icon_path}")
-            track.icon_url = get_signed_url(track_icon_path)
-            if not track.icon_url:
-                print(f"Track {track.id} - Failed to generate icon URL")
-            print(f"Track {track.id} - Icon URL: {track.icon_url}")
         else:
-            track.icon_url = None
-            print(f"Track {track.id} - No icon URL (artist or profile missing)")
+            track.audio_url = None
+            track.image_url = None
+            print(f"Track {track.id} - No content URL")
 
     for junction in junctions:
+        try:
+            if junction.collaborator.profile and junction.collaborator.profile.icon:
+                junction_icon_path = junction.collaborator.profile.icon.name.strip('/')  # .name を追加
+                print(f"Junction {junction.id} - Icon path: {junction_icon_path}")
+                junction.icon_url = get_signed_url(junction_icon_path)
+                print(f"Junction {junction.id} - Icon URL: {junction.icon_url}")
+            else:
+                junction.icon_url = None
+                print(f"Junction {junction.id} - No icon URL (collaborator or profile missing)")
+        except junction.collaborator.profile.RelatedObjectDoesNotExist:
+            junction.icon_url = None
+            print(f"Junction {junction.id} - No profile for collaborator")
+
         if junction.type == 'audio' and junction.audio_file:
-            junction_audio_path = junction.audio_file.strip('/')
+            junction_audio_path = junction.audio_file.name.strip('/')  # .name を追加
             print(f"Junction {junction.id} - Audio path: {junction_audio_path}")
             junction.audio_url = get_signed_url(junction_audio_path)
             print(f"Junction {junction.id} - Audio URL: {junction.audio_url}")
         elif junction.type == 'image' and junction.image_file:
-            junction_image_path = junction.image_file.strip('/')
+            junction_image_path = junction.image_file.name.strip('/')  # .name を追加
             print(f"Junction {junction.id} - Image path: {junction_image_path}")
             junction.image_url = get_signed_url(junction_image_path)
             print(f"Junction {junction.id} - Image URL: {junction.image_url}")
-        if junction.collaborator and hasattr(junction.collaborator, 'profile') and junction.collaborator.profile.icon:
-            junction_icon_path = junction.collaborator.profile.icon.strip('/')
-            print(f"Junction {junction.id} - Icon path: {junction_icon_path}")
-            junction.icon_url = get_signed_url(junction_icon_path)
-            if not junction.icon_url:
-                print(f"Junction {junction.id} - Failed to generate icon URL")
-            print(f"Junction {junction.id} - Icon URL: {junction.icon_url}")
         else:
-            junction.icon_url = None
-            print(f"Junction {junction.id} - No icon URL (collaborator or profile missing)")
-
-    # プロフィールのアイコンURLを設定
-    if profile.icon:
-        profile_icon_path = profile.icon.strip('/')
-        print(f"Profile icon path: {profile_icon_path}")
-        profile.icon_url = get_signed_url(profile_icon_path)
-        if not profile.icon_url:
-            print("Failed to generate icon URL for profile")
-        print(f"Profile Icon URL: {profile.icon_url}")
-    else:
-        profile.icon_url = None
-        print("Profile has no icon")
-
-    if request.method == 'POST':
-        if 'icon_update' in request.POST:
-            print("Received POST request for icon update")
-            print(f"POST data: {request.POST}")
-            print(f"FILES data: {request.FILES}")
-            icon_form = ProfileIconForm(request.POST, request.FILES)
-            if icon_form.is_valid():
-                print("Icon form is valid")
-                icon_file = request.FILES.get('icon')
-                if icon_file:
-                    print(f"Icon file received: {icon_file.name}")
-                    s3_client = boto3.client(
-                        's3',
-                        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                        region_name=settings.AWS_S3_REGION_NAME,
-                    )
-                    try:
-                        # ファイル名にタイムスタンプを追加して一意にする
-                        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                        file_name = f"{timestamp}_{icon_file.name}"
-                        s3_path = f"icons/{file_name}"
-                        print(f"Starting upload of icon to S3: {s3_path}")
-                        print(f"File size: {icon_file.size} bytes")
-                        print(f"File content type: {icon_file.content_type}")
-                        s3_client.upload_fileobj(
-                            icon_file,
-                            settings.AWS_STORAGE_BUCKET_NAME,
-                            s3_path,
-                            ExtraArgs={'ContentType': icon_file.content_type}
-                        )
-                        print(f"Icon successfully uploaded to S3: {s3_path}")
-                        # アップロード後にファイルが存在するか確認
-                        try:
-                            s3_client.head_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=s3_path)
-                            print(f"Confirmed: File exists in S3 at {s3_path}")
-                        except Exception as e:
-                            print(f"Error: File does not exist in S3 after upload: {e}")
-                        profile.icon = s3_path
-                        profile.save()
-                        print(f"Profile icon saved: {profile.icon}")
-                        profile.icon_url = get_signed_url(s3_path)
-                        print(f"Updated Profile Icon URL: {profile.icon_url}")
-                    except Exception as e:
-                        print(f"Error uploading icon to S3: {e}")
-                        print(f"S3 Bucket: {settings.AWS_STORAGE_BUCKET_NAME}")
-                        print(f"AWS Access Key ID: {settings.AWS_ACCESS_KEY_ID}")
-                        print(f"AWS Region: {settings.AWS_S3_REGION_NAME}")
-                else:
-                    print("No icon file provided - check if file was selected in the form")
-                return redirect('profile')
-            else:
-                print("Icon form errors:", icon_form.errors)
-        elif 'bio_update' in request.POST:
-            print("Received POST request for bio update")
-            bio_form = ProfileBioForm(request.POST, instance=profile)
-            if bio_form.is_valid():
-                bio_form.save()
-                print("Bio updated successfully")
-                return redirect('profile')
-            else:
-                print("Bio form errors:", bio_form.errors)
-    else:
-        icon_form = ProfileIconForm()
-        bio_form = ProfileBioForm(instance=profile)
+            junction.audio_url = None
+            junction.image_url = None
+            print(f"Junction {junction.id} - No content URL")
 
     return render(request, 'music/profile.html', {
-        'user': user,
-        'profile': profile,
         'tracks': tracks,
         'junctions': junctions,
-        'icon_form': icon_form,
-        'bio_form': bio_form,
+        'user': request.user,
+        'icon_url': icon_url
     })
 
 @login_required
