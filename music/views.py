@@ -19,9 +19,14 @@ import datetime  # 追加
 from django.contrib.auth import update_session_auth_hash
 from botocore.client import Config
 from datetime import datetime
+from django.contrib import messages
 
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
+
+    def form_invalid(self, form):
+        messages.error(self.request, "ログインに失敗しました。ユーザー名またはパスワードが間違っています。")
+        return super().form_invalid(form)
 
 class CustomSignupView(SignupView):
     template_name = 'registration/signup.html'
